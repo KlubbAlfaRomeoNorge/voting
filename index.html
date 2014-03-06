@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+{% autoescape true %}
+<html>
+    <head>
+        <title>Beste Alfa Romeo sedan etter 1978</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="shortcut icon" href="images/favicon.ico" />
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.1/css/bootstrap.min.css">
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.1/css/bootstrap-theme.min.css">
+        <style>
+        .container {
+            margin-top: 2em;
+        }
+        .car {
+            min-height: 550px;
+            padding-bottom: 1em;
+        }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="jumbotron">
+                <h1>Beste Alfa Romeo sedan <small>1978 til i dag</small></h1>
+                <p class="lead">
+                    Stem på den beste Alfa Romeo sedan etter 1978. Utvalget inkluderer sedaner som var i produksjon i 1978 og frem til i dag.
+                </p>
+            </div>
+            <div class="row">
+
+                {% for alternative in alternatives %}
+
+                <div class="col-6 col-sm-6 col-lg-4 car">
+                    <img class="img-rounded" src="{{ alternative.image }}" width="100%" />
+                    <h3>{{ alternative.title }} <small> {{ alternative.subtitle }} </small></h3>
+                    {{ alternative.description|safe }}
+                    {% if already_voted %}
+                    <button class="btn btn-default disabled">Stemme avgitt</button>
+                    {% else %}
+                    <button class="btn btn-danger" onClick="javascript:submitVote('{{ alternative.id }}', '{{ alternative.title }} ')">Stem!</button>
+                    {% endif %}
+                </div>
+
+                {% endfor %}
+
+            </div>
+        </div>
+
+        {% if not already_voted %}
+        <!-- modal dialog -->
+        <div class="modal fade" role="modal" id="vote-dialog" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title">Avgi stemme</h4>
+                    </div>
+                    <div class="modal-body">
+                        <form role="form" method="post" action="/vote" class="form-horizontal" id="vote-form">
+                            <input type="hidden" value="" name="vote-id" id="vote-id" />
+                            <div class="form-group">
+                                <label class="control-label col-sm-4">Jeg stemmer på</label>
+                                <div class="col-sm-8">
+                                    <input class="form-control" required type="text" readonly name="title" id="vote-title" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-sm-4">E-post</label>
+                                <div class="col-sm-8">
+                                    <input class="form-control" required type="email" name="email" id="email" placeholder="E-post"/>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-sm-4">Medlemsnr</label>
+                                <div class="col-sm-8">
+                                    <input class="form-control" required type="text" pattern="[0-9]*" size="4" name="memberno" id="memberno" placeholder="Medlemsnummer"/>
+                                </div>
+                            </div>
+                        </form>
+                        <div id="form-message" class="alert alert-danger"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" onClick="submitForm()">Send inn stemme</button>
+                        <button type="button" data-dismiss="modal" class="btn btn-default">Lukk</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+        <script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.1/js/bootstrap.min.js"></script>
+
+        {% if not already_voted %}
+        <script>
+        function submitForm() {
+            var email = $('#email').val();
+            var memberno = $('#memberno').val();
+            var id = $('#vote-id').val();
+
+            if (!email) {
+                showMessage('E-post må fylles ut!');
+                return;
+            }
+            if (!isValidEmail(email)) {
+                showMessage('E-postadressen er ikke gyldig!');
+                return;
+            }
+            if (!memberno) {
+                showMessage('Medlemsnummer må fylles ut!');
+                return;
+            }
+            if (!id) {
+                showMessage('En modell må velges!');
+                return;
+            }
+            $('#vote-form').submit();
+            $('#vote-dialog').close();
+        }
+        function showMessage(msg) {
+            $('#form-message').text(msg);
+            $('#form-message').show();
+        }
+        function hideMessage() {
+            $('#form-message').text('');
+            $('#form-message').hide();
+        }
+        function submitVote(id, title) {
+            $('#vote-id').val(id);
+            $('#vote-title').val(title);
+            $('#form-message').hide();
+            $('#vote-dialog').modal( { keyboad: true });
+        }
+        function isValidEmail(email) {
+            var re = /[a-z0-9!#$%&'*+/=?^_{|}~-]+(?:.[a-z0-9!#$%&'*+/=?^_{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/;
+            return re.test(email);
+        }
+        $(document).ready(function() {
+            $('#vote-dialog').on('hide.bs.modal', hideMessage);
+        });
+        </script>
+        {% endif %}
+    </body>
+</html>
+{% endautoescape %}
